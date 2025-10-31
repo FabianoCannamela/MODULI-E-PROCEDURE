@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moduli Operativi – Condiviso (Google Sheet)</title>
+<style>
+/* (stili identici alla tua versione, ridotti qui per brevità) */
+:root{--bg:#f6f7fb;--card:#fff;--ink:#1f2937;--muted:#6b7280;--accent:#2563eb;--ok:#16a34a;--bad:#b91c1c;--warn:#b45309;--border:#e5e7eb}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#ffffff, #f3f6ff);border-bottom:1px solid var(--border)}
+.wrap{max-width:1200px;margin:0 auto;padding:14px}
+.brand{display:flex;gap:12px;align-items:center}
+.brand img{width:56px;height:56px;object-fit:contain;border:1px solid var(--border);border-radius:8px;background:#fff}
+.title h1{margin:0;font-size:20px}
+.title small{color:var(--muted)}
+.inline{border:1px dashed transparent;border-radius:6px;padding:2px 6px}
+.inline[contenteditable="true"]:focus{outline:none;border-color:var(--accent);background:#eef2ff}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{display:inline-flex;gap:8px;align-items:center;border:1px solid var(--border);background:#fff;color:var(--ink);padding:8px 12px;border-radius:10px;cursor:pointer;text-decoration:none}
+.btn.primary{background:var(--accent);color:#fff;border-color:#1e3a8a}
+.btn.ghost{background:transparent}
+.btn.ok{background:var(--ok);color:#fff;border-color:#0f6a2b}
+.btn.bad{background:var(--bad);color:#fff;border-color:#7f1d1d}
+.btn.warn{background:var(--warn);color:#fff;border-color:#7c3e0a}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.tab{padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:#fff;cursor:pointer}
+.tab.active{background:#eef2ff;border-color:#c7d2fe;color:#1e3a8a}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;box-shadow:0 1px 0 rgba(0,0,0,.03)}
+.card h2{margin:0 0 10px;font-size:18px}
+fieldset{border:1px solid var(--border);padding:10px;border-radius:10px;margin:10px 0}
+legend{padding:0 6px;color:var(--muted)}
+label{display:block;margin:6px 0 2px}
+input[type="text"],input[type="date"],input[type="time"],input[type="tel"],input[type="email"],textarea,select{width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:#fff}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;gap:10px;grid-template-columns:1fr}
+@media(min-width:720px){ .row.two{grid-template-columns:1fr 1fr} .row.three{grid-template-columns:1fr 1fr 1fr} .row.four{grid-template-columns:1fr 1fr 1fr 1fr} }
+.checks{display:grid;gap:8px}
+.checks label{display:flex;gap:10px;align-items:flex-start}
+.checks input{margin-top:3px}
+.muted{color:var(--muted)} .hr{height:1px;background:var(--border);margin:12px 0}
+.hidden{display:none}
+table{width:100%;border-collapse:collapse}
+th,td{border-bottom:1px solid var(--border);padding:8px;text-align:left;vertical-align:top}
+th{background:#f9fafb}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;border:1px solid var(--border);font-size:12px;background:#fff}
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;border:1px solid var(--border);background:#fff;font-size:12px}
+.small{font-size:12px;color:var(--muted)}
+.formbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:-6px 0 8px 0}
+.formbar .status{display:flex;align-items:center;gap:8px}
+.formbar .status .dot{width:10px;height:10px;border-radius:50%}
+.formbar .status.edit .dot{background:var(--warn)}
+.formbar .status.new .dot{background:var(--ok)}
+.schema-list .item{display:flex;justify-content:space-between;gap:8px;align-items:center;border:1px dashed var(--border);border-radius:10px;padding:10px;margin:8px 0;background:#fff}
+.schema-fields .field{display:grid;gap:8px;grid-template-columns:1.2fr 1.2fr 1fr .7fr 1fr auto; align-items:center; border-bottom:1px solid var(--border); padding:8px 0}
+.schema-fields .field:last-child{border-bottom:0}
+.schema-fields input, .schema-fields select{width:100%}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <label>
+        <input type="file" id="logoInput" accept="image/*" style="display:none">
+        <img id="logo" alt="Logo (clicca per caricare)" title="Clicca per impostare il logo">
+      </label>
+      <div class="title">
+        <h1><span id="orgName" class="inline" contenteditable="true">[NOME CENTRO SPORTIVO]</span> — Schema Editor & Builder (Condiviso)</h1>
+        <small>Storico salvato su Google Sheet condiviso. Tutti vedono gli stessi dati.</small>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn primary" onclick="goTab('storico')">📊 Storico</button>
+      <button class="btn" onclick="exportCSV()">⬇️ CSV</button>
+      <button class="btn ghost" onclick="window.print()">🖨️ Stampa</button>
+    </div>
+    <div class="tabs" id="tabs"></div>
+  </div>
+</header>
+
+<main class="wrap" id="views"></main>
+
+<footer class="wrap" style="text-align:center;color:var(--muted);padding:22px 0">
+  Moduli Operativi – Condiviso su Google Sheet
+</footer>
+
+<script>
+/* ====== CONFIG ====== */
+// <<< Sostituisci con l'URL della tua Web App Apps Script >>>
+const API_URL = "https://script.google.com/macros/s/AKfycbxkNx6IGDxs9on-uQ1aEgAXWA1AlE-0MH9vPG2sp62BhNZk2RAuULRs3P9I_r76AGRE5A/exec";
+
+/* ====== Local settings (org e logo) ====== */
+const ORG_KEY='sports_center_org';
+const LOGO_KEY='sports_center_logo';
+const MODULES_KEY='sports_center_modules';
+
+/* ====== Built-in modules (come tua versione) ====== */
+const builtinModules=[
+  {id:'apertura', name:'Checklist Apertura', locked:true, fields:[
+    {name:'data',label:'Data',type:'date'},
+    {name:'ora',label:'Ora',type:'time'},
+    {name:'operatore',label:'Operatore',type:'text'},
+    {name:'note',label:'Note',type:'text'},
+    {name:'arrivo20',label:'ARRIVO 20 MINUTI PRIMA',type:'checkbox'},
+    {name:'luci',label:'ACCENSIONE LUCI (interruttori neri)',type:'checkbox'},
+    {name:'serrande',label:'APERTURA SERRANDE SALA PESI',type:'checkbox'},
+    {name:'spogliatoi',label:'VERIFICA SPOGLIATOI',type:'checkbox'},
+    {name:'software',label:'AVVIO SOFTWARE GESTIONALE',type:'checkbox'},
+    {name:'cancelli',label:'APERTURA PORTE E CANCELLI',type:'checkbox'},
+  ]},
+  {id:'chiusura', name:'Checklist Chiusura', locked:true, fields:[
+    {name:'data',label:'Data',type:'date'},
+    {name:'ora',label:'Ora',type:'time'},
+    {name:'operatore',label:'Operatore',type:'text'},
+    {name:'note',label:'Note',type:'text'},
+    {name:'serrande',label:'CHIUSURA SERRANDE SALA PESI',type:'checkbox'},
+    {name:'vuoto',label:'VERIFICA STRUTTURA VUOTA',type:'checkbox'},
+    {name:'finestra_porta',label:'FINESTRA E PORTA RETRO CHIUSE',type:'checkbox'},
+    {name:'spegnere',label:'SPEGNERE (interruttori neri)',type:'checkbox'},
+    {name:'allarme',label:'INSERIRE ALLARME (Verisure)',type:'checkbox'},
+    {name:'porta',label:'CHIUDERE PORTA INGRESSO',type:'checkbox'},
+    {name:'cancello',label:'CANCELLO CHIUSO',type:'checkbox'},
+  ]},
+  {id:'incident', name:'Incident Report', locked:true, fields:[
+    {name:'data',label:'Data evento',type:'date'},
+    {name:'ora',label:'Ora evento',type:'time'},
+    {name:'luogo',label:'Luogo/Area',type:'text'},
+    {name:'persona',label:'Persona coinvolta',type:'text'},
+    {name:'dinamica',label:'Descrizione dinamica',type:'textarea'},
+    {name:'primo_intervento',label:'Primo intervento effettuato',type:'textarea'},
+    {name:'responsabile',label:'Responsabile presente',type:'text'},
+    {name:'testimoni',label:'Testimoni',type:'text'},
+    {name:'infortunio',label:'INFORTUNIO',type:'checkbox'},
+    {name:'aics',label:'MODULI AICS COMPILATI',type:'checkbox'},
+    {name:'privacy',label:'MODULO PRIVACY COMPILATO',type:'checkbox'},
+    {name:'malore',label:'MALORE',type:'checkbox'},
+    {name:'ambulanza',label:'CHIAMATA AMBULANZA',type:'checkbox'},
+    {name:'ripreso',label:'SI È RIPRESO',type:'checkbox'},
+    {name:'danno_materiale',label:'DANNO MATERIALE',type:'checkbox'},
+    {name:'altro_flag',label:'ALTRO',type:'checkbox'},
+    {name:'nome_danno',label:'Nome persona danno (se applicabile)',type:'text'},
+    {name:'telefono_danno',label:'Telefono',type:'tel'},
+    {name:'descrizione_danno',label:'Descrizione danno',type:'textarea'}
+  ]},
+  {id:'prenotazione', name:'Prenotazione Interventi', locked:true, fields:[
+    {name:'richiedente',label:'Richiedente',type:'text'},
+    {name:'area',label:'Area/Impianto',type:'text'},
+    {name:'problema',label:'Problema rilevato',type:'textarea'},
+    {name:'disponibilita',label:'Disponibilità oraria',type:'text'},
+    {name:'tipo',label:'Tipo tecnico',type:'select', options:['','ELETTRICISTA','IDRAULICO','EDILE','ALTRO']},
+    {name:'note',label:'Note',type:'textarea'}
+  ]},
+  {id:'pulizie', name:'Registro Pulizie', locked:true, fields:[
+    {name:'responsabile',label:'Responsabile controllo',type:'text'},
+    {name:'area',label:'Area',type:'text'},
+    {name:'data',label:'Data',type:'date'},
+    {name:'orario',label:'Orario controllo',type:'time'},
+    {name:'esito',label:'Esito controllo',type:'select', options:['','OK','DA RIFARE','NON ESEGUITO']},
+    {name:'problema',label:'Problema rilevato',type:'textarea'}
+  ]},
+];
+
+/* ====== Utils ====== */
+function escapeHtml(s){return (s==null?'':String(s)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+function cssEscape(s){return s.replace(/["\\]/g,'\\$&');}
+function nowISO(){return new Date().toISOString();}
+function loadModules(){try{return JSON.parse(localStorage.getItem(MODULES_KEY)||'[]')}catch(e){return[]}}
+function saveModules(x){localStorage.setItem(MODULES_KEY,JSON.stringify(x))}
+
+/* ====== Simple API client ====== */
+async function apiList(params={}){
+  const url = new URL(API_URL);
+  url.searchParams.set('action','list');
+  if (params.formId) url.searchParams.set('formId', params.formId);
+  if (params.q) url.searchParams.set('q', params.q);
+  const res = await fetch(url, { method:'GET' });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'Errore list');
+  return j.entries||[];
+}
+async function apiCreate(payload){
+  const res = await fetch(API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(payload)
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'Errore create');
+  return j;
+}
+async function apiUpdate(id, payload){
+  const res = await fetch(API_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(Object.assign({_method:'PUT', id}, payload))
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'Errore update');
+  return j;
+}
+async function apiDelete(id){
+  const url = new URL(API_URL);
+  url.searchParams.set('id', id);
+  const res = await fetch(url, {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({_method:'DELETE'})
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error||'Errore delete');
+  return j;
+}
+
+/* ====== UI RENDER (tabs, forms, storico) ====== */
+let currentEdit=null; // {id, formId}
+
+function renderTabsAndViews(){
+  const custom = loadModules();
+  const modules = [...builtinModules, ...custom];
+
+  // tabs
+  const tabs=document.getElementById('tabs'); tabs.innerHTML='';
+  modules.forEach(m=>{
+    const b=document.createElement('button'); b.id='tab-'+m.id; b.className='tab'; b.textContent=m.name; b.onclick=()=>goTab(m.id); tabs.appendChild(b);
+  });
+  const tS=document.createElement('button'); tS.id='tab-storico'; tS.className='tab'; tS.textContent='Storico'; tS.onclick=()=>goTab('storico'); tabs.appendChild(tS);
+  const tE=document.createElement('button'); tE.id='tab-schema'; tE.className='tab'; tE.textContent='Schema Editor'; tE.onclick=()=>goTab('schema'); tabs.appendChild(tE);
+
+  // views
+  const views=document.getElementById('views'); views.innerHTML='';
+
+  // module forms
+  modules.forEach(m=>{
+    const sec=document.createElement('section'); sec.id='view-'+m.id; sec.className='card hidden';
+    sec.innerHTML = `<div class="formbar">
+        <div id="status-${m.id}" class="status new"><span class="dot"></span><span class="small">Modalità inserimento</span></div>
+        <div style="flex:1"></div>
+        <button class="btn warn hidden" id="btn-cancel-${m.id}" type="button" onclick="cancelEdit('${m.id}')">Annulla modifica</button>
+      </div>
+      <h2>${m.name} ${m.locked?'<span class="badge">standard</span>':''}</h2>
+      ${buildFormHTML(m)}
+      <p class="small muted">Modulo: ${m.id}</p>`;
+    views.appendChild(sec);
+  });
+
+  // storico
+  const s=document.createElement('section'); s.id='view-storico'; s.className='card hidden';
+  s.innerHTML=`<h2>📊 Storico (Google Sheet)</h2>
+  <div class="row two">
+    <div>
+      <label>Filtro modulo</label>
+      <select id="filterForm" onchange="renderStorico()">
+        <option value="">Tutti</option>
+        ${modules.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}
+      </select>
+    </div>
+    <div>
+      <label>Ricerca testo</label>
+      <input type="text" id="searchText" placeholder="Cerca..." oninput="renderStorico()">
+    </div>
+  </div>
+  <div class="hr"></div>
+  <div id="storicoTable"></div>`;
+  views.appendChild(s);
+
+  // schema editor
+  const e=document.createElement('section'); e.id='view-schema'; e.className='card hidden';
+  e.innerHTML = buildSchemaEditorHTML(modules);
+  views.appendChild(e);
+
+  goTab(modules[0]?.id || 'storico');
+  renderStorico();
+}
+
+function buildFormHTML(m){
+  const rows = (m.fields||[]).map(f=>fieldToHTML(f)).join('');
+  return `<form id="form-${m.id}">
+    ${rows}
+    <div class="hr"></div>
+    <button type="button" class="btn ok" id="btn-save-${m.id}" onclick="saveForm('${m.id}')">💾 Salva</button>
+    <button type="reset" class="btn ghost">↺ Reset</button>
+  </form>`;
+}
+
+function fieldToHTML(f){
+  const req = f.required ? ' required' : '';
+  if(f.type==='textarea'){
+    return `<div><label>${escapeHtml(f.label||f.name)}</label><textarea name="${escapeHtml(f.name)}"${req}></textarea></div>`;
+  }
+  if(f.type==='select'){
+    const opts=(f.options||[]).map(o=>`<option>${escapeHtml(o)}</option>`).join('');
+    return `<div><label>${escapeHtml(f.label||f.name)}</label><select name="${escapeHtml(f.name)}"${req}>${opts}</select></div>`;
+  }
+  if(f.type==='checkbox'){
+    return `<div class="checks"><label><input type="checkbox" name="${escapeHtml(f.name)}"> ${escapeHtml(f.label||f.name)}</label></div>`;
+  }
+  const t=f.type||'text';
+  return `<div><label>${escapeHtml(f.label||f.name)}</label><input type="${t}" name="${escapeHtml(f.name)}"${req}></div>`;
+}
+
+/* ====== Schema Editor (solo locale) ====== */
+function buildSchemaEditorHTML(modules){
+  const custom = modules.filter(m=>!m.locked);
+  const builtin = modules.filter(m=>m.locked);
+  return `<h2>Schema Editor</h2>
+  <p class="small">Modifica i moduli personalizzati (solo locale) o duplica i moduli standard.</p>
+  <div class="hr"></div>
+  <div class="schema-list">
+    <h3>Moduli standard</h3>
+    ${builtin.map(m=>`
+      <div class="item">
+        <div><strong>${escapeHtml(m.name)}</strong> <span class="badge">id: ${escapeHtml(m.id)}</span> <span class="badge">standard</span></div>
+        <div>
+          <button class="btn" onclick="duplicateBuiltin('${m.id}')">Duplica come personalizzato</button>
+        </div>
+      </div>
+    `).join('')}
+    <h3>Moduli personalizzati</h3>
+    ${custom.length? custom.map(m=>`
+      <div class="item">
+        <div><strong>${escapeHtml(m.name)}</strong> <span class="badge">id: ${escapeHtml(m.id)}</span></div>
+        <div>
+          <button class="btn" onclick="openSchemaEditor('${m.id}')">Modifica schema</button>
+          <button class="btn bad" onclick="deleteModule('${m.id}')">Elimina modulo</button>
+        </div>
+      </div>
+    `).join('') : '<p class="small">Nessun modulo personalizzato ancora. Duplica un modulo standard o creane uno da zero.</p>'}
+    <div class="hr"></div>
+    <button class="btn ok" onclick="openSchemaEditor('')">➕ Nuovo modulo personalizzato</button>
+  </div>
+  <div id="schema-drawer" class="card hidden" style="margin-top:12px">
+    <h3 id="schema-title">Nuovo modulo</h3>
+    <div class="row two">
+      <div><label>ID modulo (unico)</label><input type="text" id="sch-id" placeholder="es. magazzino"></div>
+      <div><label>Nome modulo</label><input type="text" id="sch-name" placeholder="Registro Magazzino"></div>
+    </div>
+    <div class="hr"></div>
+    <div class="schema-fields" id="sch-fields"></div>
+    <div class="hr"></div>
+    <div class="row two">
+      <button class="btn" type="button" onclick="addSchemaField()">➕ Aggiungi campo</button>
+      <div style="text-align:right">
+        <button class="btn ok" type="button" onclick="saveSchema()">💾 Salva schema</button>
+        <button class="btn ghost" type="button" onclick="closeSchemaEditor()">Chiudi</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function duplicateBuiltin(id){
+  const m = [...builtinModules].find(x=>x.id===id);
+  if(!m) return;
+  openSchemaEditor('');
+  document.getElementById('schema-title').textContent = `Duplica: ${m.name}`;
+  document.getElementById('sch-id').value = m.id+'-custom';
+  document.getElementById('sch-name').value = m.name+' (Personalizzato)';
+  const fields = m.fields || [];
+  const cont=document.getElementById('sch-fields'); cont.innerHTML='';
+  fields.forEach(f=>addSchemaField(f));
+}
+
+function openSchemaEditor(id){
+  const drawer=document.getElementById('schema-drawer'); drawer.classList.remove('hidden');
+  const cont=document.getElementById('sch-fields'); cont.innerHTML='';
+  if(!id){
+    document.getElementById('schema-title').textContent='Nuovo modulo';
+    document.getElementById('sch-id').value='';
+    document.getElementById('sch-name').value='';
+  }else{
+    const m=loadModules().find(x=>x.id===id); if(!m) return;
+    document.getElementById('schema-title').textContent='Modifica: '+m.name;
+    document.getElementById('sch-id').value=m.id;
+    document.getElementById('sch-name').value=m.name;
+    (m.fields||[]).forEach(f=>addSchemaField(f));
+  }
+}
+
+function closeSchemaEditor(){
+  document.getElementById('schema-drawer').classList.add('hidden');
+}
+
+function addSchemaField(f={name:'',label:'',type:'text',required:false,options:[]}){
+  const row=document.createElement('div');
+  row.className='field';
+  row.innerHTML = `
+    <input type="text" placeholder="nome" value="${escapeHtml(f.name||'')}">
+    <input type="text" placeholder="etichetta" value="${escapeHtml(f.label||'')}">
+    <select>
+      <option${(f.type==='text'?' selected':'')}>text</option>
+      <option${(f.type==='date'?' selected':'')}>date</option>
+      <option${(f.type==='time'?' selected':'')}>time</option>
+      <option${(f.type==='tel'?' selected':'')}>tel</option>
+      <option${(f.type==='email'?' selected':'')}>email</option>
+      <option${(f.type==='textarea'?' selected':'')}>textarea</option>
+      <option${(f.type==='select'?' selected':'')}>select</option>
+      <option${(f.type==='checkbox'?' selected':'')}>checkbox</option>
+    </select>
+    <select>
+      <option value=""${(!f.required?' selected':'')}>Obbligatorio: No</option>
+      <option value="1"${(f.required?' selected':'')}>Obbligatorio: Sì</option>
+    </select>
+    <input type="text" placeholder="opzioni (solo select, separate da |)" value="${escapeHtml((f.options||[]).join('|'))}">
+    <button class="btn bad" type="button">Elimina</button>
+  `;
+  row.querySelector('.btn.bad').onclick=()=>row.remove();
+  document.getElementById('sch-fields').appendChild(row);
+}
+
+function saveSchema(){
+  const id=(document.getElementById('sch-id').value||'').trim();
+  const name=(document.getElementById('sch-name').value||'').trim();
+  if(!id || !/^[a-z0-9\-_.]+$/.test(id)){ alert('ID non valido (minuscole, numeri, trattini/punti).'); return; }
+  if(!name){ alert('Inserisci un nome modulo.'); return; }
+  const rows=[...document.querySelectorAll('#sch-fields .field')];
+  if(rows.length===0){ alert('Aggiungi almeno un campo.'); return; }
+  const fields = rows.map(r=>{
+    const [nameEl,labelEl,typeEl,reqEl,optEl] = r.querySelectorAll('input,select');
+    const obj={
+      name: nameEl.value.trim(),
+      label: labelEl.value.trim()||nameEl.value.trim(),
+      type: typeEl.value,
+      required: !!reqEl.value,
+    };
+    if(obj.type==='select'){
+      obj.options = (optEl.value||'').split('|').map(s=>s.trim());
+    }
+    return obj;
+  }).filter(f=>f.name);
+  const custom=loadModules();
+  const idx=custom.findIndex(x=>x.id===id);
+  if(idx>=0){ custom[idx] = {id,name,fields}; }
+  else custom.push({id,name,fields});
+  saveModules(custom);
+  alert('Schema salvato ✅');
+  renderTabsAndViews();
+  goTab(id);
+}
+
+/* ====== SAVE / EDIT with backend ====== */
+async function saveForm(formId){
+  const form=document.getElementById('form-'+formId);
+  if(!form){ alert('Modulo non trovato.'); return; }
+  if(!form.checkValidity()){ form.reportValidity(); return; }
+  const data=new FormData(form); const obj={};
+  for(const [k,v] of data.entries()){ obj[k]=(k in obj)?[].concat(obj[k],v):v; }
+  form.querySelectorAll('input[type=checkbox]').forEach(cb=>{ obj[cb.name]=!!cb.checked; });
+
+  const payload = { formId, formName: moduleLabel(formId), data: obj };
+
+  try {
+    if(currentEdit && currentEdit.formId===formId){
+      await apiUpdate(currentEdit.id, payload);
+      alert('Modifica salvata ✅');
+      exitEditMode(formId);
+    } else {
+      await apiCreate(payload);
+      alert('Salvato ✅');
+    }
+    goTab('storico'); renderStorico();
+  } catch(err){
+    console.error(err);
+    alert('Errore di salvataggio: '+ err.message);
+  }
+}
+
+async function startEdit(id){
+  try{
+    // list and find locally (we already have full data in table dataset attributes) – fallback to refetch
+    const res = await fetch(new URL(API_URL+"?action=get&id="+encodeURIComponent(id)));
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||'Record non trovato');
+    const r = j.entry;
+    currentEdit={id:r.id, formId:r.formId};
+    goTab(r.formId);
+    const form=document.getElementById('form-'+r.formId); if(!form){ alert('Modulo non trovato'); return; }
+    form.reset();
+    Object.entries(r.data||{}).forEach(([k,v])=>{
+      const els=form.querySelectorAll(`[name="${cssEscape(k)}"]`);
+      els.forEach(el=>{
+        if(el.type==='checkbox') el.checked=!!v;
+        else if(el.tagName==='SELECT') el.value = Array.isArray(v)? v[0] ?? '' : v ?? '';
+        else el.value = Array.isArray(v)? v[0] ?? '' : v ?? '';
+      });
+    });
+    const status=document.getElementById('status-'+r.formId);
+    status.classList.remove('new'); status.classList.add('edit');
+    status.innerHTML = `<span class="dot"></span><span class="small"><strong>Modalità modifica</strong> • ID: ${r.id}</span>`;
+    document.getElementById('btn-cancel-'+r.formId).classList.remove('hidden');
+    document.getElementById('btn-save-'+r.formId).textContent='💾 Salva modifiche';
+  }catch(err){
+    alert('Errore apertura modifica: '+err.message);
+  }
+}
+
+function cancelEdit(formId){
+  exitEditMode(formId); alert('Modifica annullata');
+}
+
+function exitEditMode(formId){
+  currentEdit=null;
+  const status=document.getElementById('status-'+formId);
+  status.classList.remove('edit'); status.classList.add('new');
+  status.innerHTML = `<span class="dot"></span><span class="small">Modalità inserimento</span>`;
+  document.getElementById('btn-cancel-'+formId).classList.add('hidden');
+  document.getElementById('btn-save-'+formId).textContent='💾 Salva';
+}
+
+/* ====== STORICO ====== */
+function moduleLabel(id){
+  const m=[...builtinModules, ...loadModules()].find(x=>x.id===id);
+  return m? m.name : id;
+}
+
+async function renderStorico(){
+  const container=document.getElementById('storicoTable'); if(!container) return;
+  container.innerHTML='<p class="small">Caricamento...</p>';
+  const filter=document.getElementById('filterForm')?.value||'';
+  const q=(document.getElementById('searchText')?.value||'').toLowerCase();
+
+  try {
+    const items = await apiList({ formId: filter || undefined, q: q || undefined });
+    if(items.length===0){ container.innerHTML='<p class="muted">Nessuna registrazione.</p>'; return; }
+
+    const groups={};
+    for(const r of items){
+      const d=new Date(r.timestamp).toISOString().slice(0,10);
+      (groups[d]=groups[d]||[]).push(r);
+    }
+    let html='';
+    for(const day of Object.keys(groups).sort().reverse()){
+      html += `<div class="card" style="padding:0;margin-bottom:12px">
+        <div style="padding:10px 12px;border-bottom:1px solid var(--border);background:#fafafa;font-weight:600">${day}</div>
+        <div style="padding:8px;max-height:46vh;overflow:auto">
+          <table><thead><tr>
+            <th>Ora</th><th>Modulo</th><th>Dati</th><th>Azioni</th>
+          </tr></thead><tbody>`;
+      for(const r of groups[day]){
+        const t=new Date(r.timestamp);
+        const dataHTML=Object.entries(r.data||{}).map(([k,v])=>{
+          const vv= typeof v==='boolean' ? (v?'✔️':'—') : (Array.isArray(v)?v.join(', '): String(v));
+          return `<div><span class="pill">${escapeHtml(k)}</span> ${escapeHtml(vv)}</div>`;
+        }).join('');
+        html += `<tr>
+          <td>${t.toLocaleTimeString()}</td>
+          <td>${escapeHtml(r.formName)}</td>
+          <td>${dataHTML}${r.updatedAt?`<div class="small">Aggiornato: ${new Date(r.updatedAt).toLocaleString()}</div>`:''}</td>
+          <td>
+            <button class="btn" onclick="startEdit('${r.id}')">✏️ Modifica</button>
+            <button class="btn ghost" onclick="downloadEntryHTML('${r.id}')">⬇️ HTML</button>
+            <button class="btn ghost" onclick="delEntry('${r.id}')">Elimina</button>
+          </td>
+        </tr>`;
+      }
+      html += `</tbody></table></div></div>`;
+    }
+    container.innerHTML=html;
+  } catch(err){
+    container.innerHTML='<p class="muted">Errore caricamento: '+escapeHtml(err.message)+'</p>';
+  }
+}
+
+async function delEntry(id){
+  if(!confirm('Eliminare questa registrazione?')) return;
+  try {
+    await apiDelete(id);
+    renderStorico();
+  } catch(err){
+    alert('Errore eliminazione: '+ err.message);
+  }
+}
+
+async function downloadEntryHTML(id){
+  // prende i dati freschi e genera doc client-side
+  try{
+    const res = await fetch(new URL(API_URL+"?action=get&id="+encodeURIComponent(id)));
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||'Record non trovato');
+    const r = j.entry;
+    const org=(document.getElementById('orgName').textContent||'').trim()||'Centro Sportivo';
+    const logo=localStorage.getItem(LOGO_KEY);
+    const t=new Date(r.timestamp).toLocaleString();
+    const rows=Object.entries(r.data||{}).map(([k,v])=>{
+      const vv= typeof v==='boolean' ? (v?'✔️':'—') : (Array.isArray(v)?v.join(', '): String(v));
+      return `<tr><th style="text-align:left;padding:6px;border:1px solid #e5e7eb;background:#f9fafb">${escapeHtml(k)}</th><td style="padding:6px;border:1px solid #e5e7eb">${escapeHtml(vv)}</td></tr>`;
+    }).join('');
+    const doc = `<!DOCTYPE html><html lang="it"><meta charset="utf-8"><title>${r.formName} – ${org}</title>
+    <body style="font:14px system-ui; color:#111; margin:24px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+      ${logo?`<img src="${logo}" style="width:64px;height:64px;object-fit:contain;border:1px solid #eee;border-radius:8px">`:''}
+      <div><div style="font-weight:700">${org}</div><div style="color:#6b7280">${r.formName} • ${t}</div></div>
+    </div>
+    <table style="border-collapse:collapse;width:100%">${rows}</table>
+    <div style="margin-top:16px;color:#6b7280">Generato da Moduli Operativi – Schema Editor + Builder + Storico + Edit</div>
+    </body></html>`;
+    const blob=new Blob([doc],{type:'text/html;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a'); a.href=url; a.download=`${r.formId}_${r.id}.html`; a.click(); URL.revokeObjectURL(url);
+  }catch(err){
+    alert('Errore download: '+err.message);
+  }
+}
+
+/* ====== EXPORT ====== */
+function exportCSV(){
+  window.open(API_URL + "?action=csv", "_blank");
+}
+
+/* ====== Org & Logo persist ====== */
+const orgEl=document.getElementById('orgName'); orgEl.addEventListener('input',()=>localStorage.setItem(ORG_KEY,orgEl.textContent.trim()));
+(function(){ const v=localStorage.getItem(ORG_KEY); if(v) orgEl.textContent=v; })();
+const logoEl=document.getElementById('logo'); const logoInput=document.getElementById('logoInput');
+logoEl.addEventListener('click',()=>logoInput.click());
+logoInput.addEventListener('change',()=>{
+  const f=logoInput.files[0]; if(!f) return; const reader=new FileReader();
+  reader.onload=()=>{ localStorage.setItem(LOGO_KEY, reader.result); logoEl.src=reader.result; };
+  reader.readAsDataURL(f);
+});
+(function(){ const v=localStorage.getItem(LOGO_KEY); if(v) logoEl.src=v; else logoEl.style.display='none'; })();
+
+/* ====== NAV ====== */
+function goTab(id){
+  document.querySelectorAll('[id^="view-"]').forEach(x=>x.classList.add('hidden'));
+  document.querySelectorAll('[id^="tab-"]').forEach(x=>x.classList.remove('active'));
+  const v=document.getElementById('view-'+id); const t=document.getElementById('tab-'+id);
+  if(v) v.classList.remove('hidden'); if(t) t.classList.add('active');
+  if(id==='storico') renderStorico();
+  if(id==='schema'){
+    const e=document.getElementById('view-schema');
+    e.innerHTML = buildSchemaEditorHTML([...builtinModules, ...loadModules()]);
+  }
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* Init */
+renderTabsAndViews();
+</script>
+</body>
+</html>
